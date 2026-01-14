@@ -23,9 +23,16 @@ export function LocationSearch({
 
   const debouncedQuery = useDebounce(query, 300);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const hasSelectedRef = useRef(false);
 
   useEffect(() => {
     async function fetchLocations() {
+      // Skip search if user just selected a location
+      if (hasSelectedRef.current) {
+        hasSelectedRef.current = false;
+        return;
+      }
+
       if (debouncedQuery.length < 2) {
         setResults([]);
         setIsOpen(false);
@@ -78,7 +85,9 @@ export function LocationSearch({
   }, []);
 
   function handleSelect(location: GeoLocation) {
+    hasSelectedRef.current = true;
     setQuery(location.display_name);
+    setResults([]);
     setIsOpen(false);
     onSelect(location);
   }
@@ -103,7 +112,7 @@ export function LocationSearch({
           className="location-btn"
           title="Use my location"
         >
-          {isLoadingLocation ? 'Locating...' : '\ud83d\udccd Use My Location'}
+          {isLoadingLocation ? 'Locating...' : '📍 Use My Location'}
         </button>
       </div>
 

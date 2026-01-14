@@ -22,7 +22,7 @@ export async function getCurrentWeather(
   lon: number
 ): Promise<CurrentWeather> {
   const response = await fetch(
-    `${API_BASE}/api/weather/current?lat=${lat}&lon=${lon}`
+    `${API_BASE}/api/weather/current?lat=${lat}&lon=${lon}&units=imperial`
   );
   if (!response.ok) {
     throw new Error(`Weather fetch failed: ${response.statusText}`);
@@ -36,7 +36,7 @@ export async function getForecast(
   days: number = 5
 ): Promise<ForecastResponse> {
   const response = await fetch(
-    `${API_BASE}/api/weather/forecast?lat=${lat}&lon=${lon}&days=${days}`
+    `${API_BASE}/api/weather/forecast?lat=${lat}&lon=${lon}&days=${days}&units=imperial`
   );
   if (!response.ok) {
     throw new Error(`Forecast fetch failed: ${response.statusText}`);

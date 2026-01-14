@@ -35,7 +35,7 @@ export function ForecastCard({ forecast }: ForecastCardProps) {
       </div>
       <div className="forecast-pop">
         {forecast.pop > 0 && (
-          <span className="pop-value">\ud83d\udca7 {Math.round(forecast.pop * 100)}%</span>
+          <span className="pop-value">💧 {Math.round(forecast.pop * 100)}%</span>
         )}
       </div>
     </div>

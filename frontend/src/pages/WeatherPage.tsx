@@ -12,7 +12,7 @@ export function WeatherPage() {
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function fetchWeatherData(lat: number, lon: number) {
+  async function fetchWeatherData(lat: number, lon: number, displayName?: string) {
     setIsLoading(true);
     setError(null);
 
@@ -21,6 +21,11 @@ export function WeatherPage() {
         getCurrentWeather(lat, lon),
         getForecast(lat, lon, 5),
       ]);
+      // Use the selected location's display name if provided,
+      // otherwise fall back to the API's returned location name
+      if (displayName) {
+        weather.location_name = displayName;
+      }
       setCurrentWeather(weather);
       setForecast(forecastData);
     } catch (err) {
@@ -33,7 +38,7 @@ export function WeatherPage() {
   }
 
   function handleLocationSelect(location: GeoLocation) {
-    fetchWeatherData(location.lat, location.lon);
+    fetchWeatherData(location.lat, location.lon, location.display_name);
   }
 
   function handleUseMyLocation() {

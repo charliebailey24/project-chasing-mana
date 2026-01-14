@@ -29,14 +29,14 @@ export function CurrentWeatherCard({ weather }: CurrentWeatherCardProps) {
         />
         <div className="temperature">
           <span className="temp-value">{Math.round(weather.temp)}</span>
-          <span className="temp-unit">&deg;C</span>
+          <span className="temp-unit">&deg;F</span>
         </div>
       </div>
 
       <div className="weather-details">
         <div className="detail-item">
           <span className="detail-label">Feels like</span>
-          <span className="detail-value">{Math.round(weather.feels_like)}&deg;C</span>
+          <span className="detail-value">{Math.round(weather.feels_like)}&deg;F</span>
         </div>
         <div className="detail-item">
           <span className="detail-label">High / Low</span>
@@ -50,7 +50,7 @@ export function CurrentWeatherCard({ weather }: CurrentWeatherCardProps) {
         </div>
         <div className="detail-item">
           <span className="detail-label">Wind</span>
-          <span className="detail-value">{weather.wind_speed} m/s</span>
+          <span className="detail-value">{Math.round(weather.wind_speed)} mph</span>
         </div>
         <div className="detail-item">
           <span className="detail-label">Pressure</span>

@@ -92,22 +92,86 @@ The Vite dev server proxies `/api` requests to the backend automatically.
 
 ## Deployment
 
-### Backend (Render)
+Deploy the app for free using **Render** (backend) and **Vercel** (frontend).
 
-1. Create a new Web Service on Render
-2. Connect your GitHub repo
-3. Configure:
-   - **Root Directory**: `backend`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-4. Add environment variables:
-   - `OPENWEATHERMAP_API_KEY`: your API key
-   - `FRONTEND_URL`: your Vercel frontend URL
+### Step 1: Deploy Backend to Render
 
-### Backend (Fly.io)
+1. Go to [render.com](https://render.com) and sign up/login with GitHub
+
+2. Click **New → Web Service**
+
+3. Connect your GitHub repo (`project-chasing-mana`)
+
+4. Configure the service:
+
+   | Setting | Value |
+   |---------|-------|
+   | **Name** | `chasingmana-api` (or your choice) |
+   | **Root Directory** | `backend` |
+   | **Runtime** | Python 3 |
+   | **Build Command** | `pip install -r requirements.txt` |
+   | **Start Command** | `uvicorn main:app --host 0.0.0.0 --port $PORT` |
+
+5. Add Environment Variables (under "Environment" section):
+   - `OPENWEATHERMAP_API_KEY` = your OpenWeatherMap API key
+   - `FRONTEND_URL` = `https://your-app.vercel.app` (update after Step 2)
+
+6. Click **Create Web Service**
+
+7. Wait for the deploy to complete (~2-5 minutes)
+
+8. Note your backend URL: `https://chasingmana-api.onrender.com`
+
+### Step 2: Deploy Frontend to Vercel
+
+1. Go to [vercel.com](https://vercel.com) and sign up/login with GitHub
+
+2. Click **Add New → Project**
+
+3. Import your `project-chasing-mana` repository
+
+4. Configure the project:
+
+   | Setting | Value |
+   |---------|-------|
+   | **Root Directory** | `frontend` |
+   | **Framework Preset** | Vite |
+   | **Build Command** | `npm run build` |
+   | **Output Directory** | `dist` |
+
+5. Add Environment Variable:
+   - `VITE_API_URL` = `https://chasingmana-api.onrender.com` (your Render URL from Step 1)
+
+6. Click **Deploy**
+
+7. Your frontend will be live at: `https://your-project.vercel.app/weather`
+
+### Step 3: Update Backend CORS
+
+1. Go back to your Render dashboard
+2. Select your backend service
+3. Go to **Environment** and update `FRONTEND_URL` with your actual Vercel URL
+4. The service will automatically redeploy
+
+### Verify Deployment
+
+1. Visit `https://your-vercel-url.vercel.app/weather`
+2. Search for a city (e.g., "Paris")
+3. You should see current weather and 5-day forecast
+
+### Free Tier Notes
+
+- **Render free tier**: Service spins down after 15 minutes of inactivity. First request after inactivity may take ~30 seconds while it wakes up.
+- **Vercel free tier**: No cold starts, always fast. Generous limits for personal projects.
+
+### Alternative: Backend on Fly.io
+
+If you prefer Fly.io over Render:
 
 ```bash
 cd backend
+
+# Install flyctl if needed: https://fly.io/docs/hands-on/install-flyctl/
 
 # Create fly.toml
 cat > fly.toml << 'EOF'
@@ -133,24 +197,6 @@ fly launch
 fly secrets set OPENWEATHERMAP_API_KEY=your_key_here
 fly secrets set FRONTEND_URL=https://your-app.vercel.app
 fly deploy
-```
-
-### Frontend (Vercel)
-
-1. Import project to Vercel
-2. Configure:
-   - **Root Directory**: `frontend`
-   - **Framework Preset**: Vite
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-3. Add environment variable (if not using proxy):
-   - `VITE_API_URL`: your backend URL
-
-For production, update `frontend/src/services/api.ts` to use the deployed backend URL:
-```typescript
-const API_BASE = import.meta.env.PROD
-  ? 'https://your-backend-url.com'
-  : '';
 ```
 
 ## Environment Variables
