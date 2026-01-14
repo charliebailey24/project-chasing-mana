@@ -157,5 +157,5 @@ class ForecastResponse(BaseModel):
 
     lat: float
     lon: float
-    timezone: str | None = None
+    timezone: int | None = None
     daily: list[DailyForecast]
