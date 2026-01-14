@@ -165,3 +165,197 @@ const API_BASE = import.meta.env.PROD
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `VITE_API_URL` | Backend API URL | (uses proxy in dev) |
+
+## Testing
+
+The project includes comprehensive tests across backend, frontend, and E2E.
+
+### Quick Start
+
+```bash
+# Backend tests (from backend/)
+cd backend
+pip install -r requirements.txt
+pytest
+
+# Frontend tests (from frontend/)
+cd frontend
+npm install
+npm test
+
+# E2E tests (requires both servers running)
+cd backend
+pytest -m e2e
+```
+
+### Backend Tests (Python/pytest)
+
+Located in `backend/tests/`:
+
+| Test File | Description |
+|-----------|-------------|
+| `test_services_geocoding.py` | Unit tests for geocoding service parsing and error handling |
+| `test_services_weather.py` | Unit tests for weather provider normalization and error handling |
+| `test_api.py` | Integration tests using FastAPI TestClient |
+| `test_schema.py` | Schemathesis OpenAPI schema validation tests |
+
+**Commands:**
+
+```bash
+cd backend
+
+# Run all backend tests (excluding E2E)
+pytest
+
+# Run with coverage
+pytest --cov=. --cov-report=html
+
+# Run specific test file
+pytest tests/test_api.py
+
+# Run only unit tests
+pytest tests/test_services_*.py
+
+# Run integration tests
+pytest tests/test_api.py
+
+# Run schema tests
+pytest tests/test_schema.py -v
+```
+
+### Frontend Tests (Vitest + React Testing Library)
+
+Located in `frontend/src/test/`:
+
+| Test File | Description |
+|-----------|-------------|
+| `WeatherPage.test.tsx` | Tests for main weather page rendering |
+| `LocationSearch.test.tsx` | Tests for location search component |
+
+**Commands:**
+
+```bash
+cd frontend
+
+# Run tests in watch mode
+npm test
+
+# Run tests once
+npm run test:run
+
+# Run with coverage
+npm run test:coverage
+```
+
+### E2E Tests (Playwright for Python)
+
+Located in `backend/tests/e2e/`:
+
+| Test File | Description |
+|-----------|-------------|
+| `test_weather_flow.py` | Full user flow: search → select → view weather |
+
+**Prerequisites for E2E:**
+1. Backend server running on `http://localhost:8000`
+2. Frontend server running on `http://localhost:5173`
+3. Playwright browsers installed
+
+**Setup:**
+
+```bash
+cd backend
+
+# Install Playwright browsers (one-time)
+playwright install chromium
+
+# Or install all browsers
+playwright install
+```
+
+**Commands:**
+
+```bash
+cd backend
+
+# Run E2E tests
+pytest -m e2e
+
+# Run E2E with headed browser (visible)
+pytest -m e2e --headed
+
+# Run E2E with specific browser
+pytest -m e2e --browser chromium
+pytest -m e2e --browser firefox
+pytest -m e2e --browser webkit
+```
+
+### CI Integration
+
+Example GitHub Actions workflow:
+
+```yaml
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+      - name: Run tests
+        working-directory: backend
+        run: pytest --ignore=tests/e2e
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Run tests
+        working-directory: frontend
+        run: npm run test:run
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install backend dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+      - name: Install Playwright
+        run: playwright install chromium
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Start backend
+        working-directory: backend
+        run: uvicorn main:app --port 8000 &
+        env:
+          OPENWEATHERMAP_API_KEY: ${{ secrets.OPENWEATHERMAP_API_KEY }}
+      - name: Start frontend
+        working-directory: frontend
+        run: npm run dev &
+      - name: Wait for servers
+        run: sleep 10
+      - name: Run E2E tests
+        working-directory: backend
+        run: pytest -m e2e
+```
