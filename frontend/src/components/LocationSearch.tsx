@@ -22,6 +22,7 @@ export function LocationSearch({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const debouncedQuery = useDebounce(query, 300);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     async function fetchLocations() {
@@ -31,14 +32,24 @@ export function LocationSearch({
         return;
       }
 
+      // Abort previous request if still pending
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+
       setIsLoading(true);
       setError(null);
 
       try {
-        const response = await searchLocations(debouncedQuery);
+        const response = await searchLocations(debouncedQuery, abortControllerRef.current.signal);
         setResults(response.results);
         setIsOpen(response.results.length > 0);
       } catch (err) {
+        // Ignore aborted requests
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
         setError('Failed to search locations');
         setResults([]);
       } finally {
@@ -47,6 +58,12 @@ export function LocationSearch({
     }
 
     fetchLocations();
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [debouncedQuery]);
 
   useEffect(() => {

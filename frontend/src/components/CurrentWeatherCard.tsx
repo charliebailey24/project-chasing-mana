@@ -15,7 +15,7 @@ export function CurrentWeatherCard({ weather }: CurrentWeatherCardProps) {
   };
 
   return (
-    <div className="current-weather-card">
+    <div className="current-weather-card weather-card" data-testid="current-weather-card">
       <div className="weather-header">
         <h2>{weather.location_name}</h2>
         <p className="weather-description">{weather.condition.description}</p>

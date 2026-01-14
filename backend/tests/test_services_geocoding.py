@@ -139,42 +139,6 @@ class TestGeocodingService:
         with pytest.raises(httpx.HTTPStatusError):
             await service.search("Paris")
 
-    @respx.mock
-    @pytest.mark.asyncio
-    async def test_reverse_returns_location(self, service):
-        """Test reverse geocoding returns location."""
-        respx.get("https://api.openweathermap.org/geo/1.0/reverse").mock(
-            return_value=Response(
-                200,
-                json=[
-                    {
-                        "name": "Paris",
-                        "lat": 48.8566,
-                        "lon": 2.3522,
-                        "country": "FR",
-                        "state": "Ile-de-France",
-                    }
-                ],
-            )
-        )
-
-        result = await service.reverse(48.8566, 2.3522)
-
-        assert result is not None
-        assert result.name == "Paris"
-
-    @respx.mock
-    @pytest.mark.asyncio
-    async def test_reverse_no_results(self, service):
-        """Test reverse geocoding returns None when no results."""
-        respx.get("https://api.openweathermap.org/geo/1.0/reverse").mock(
-            return_value=Response(200, json=[])
-        )
-
-        result = await service.reverse(0.0, 0.0)
-
-        assert result is None
-
     @pytest.mark.asyncio
     async def test_close_client(self, service):
         """Test closing the HTTP client."""

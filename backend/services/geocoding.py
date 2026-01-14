@@ -56,37 +56,3 @@ class GeocodingService:
         data = response.json()
 
         return [GeoLocation.from_openweathermap(item) for item in data]
-
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=1, max=4),
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
-        reraise=True,
-    )
-    async def reverse(self, lat: float, lon: float) -> GeoLocation | None:
-        """
-        Reverse geocode coordinates to a location.
-
-        Args:
-            lat: Latitude
-            lon: Longitude
-
-        Returns:
-            GeoLocation if found, None otherwise
-        """
-        client = await self._get_client()
-        response = await client.get(
-            f"{self.BASE_URL}/reverse",
-            params={
-                "lat": lat,
-                "lon": lon,
-                "limit": 1,
-                "appid": self.api_key,
-            },
-        )
-        response.raise_for_status()
-        data = response.json()
-
-        if data:
-            return GeoLocation.from_openweathermap(data[0])
-        return None

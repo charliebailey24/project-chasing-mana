@@ -4,11 +4,12 @@ import type {
   ForecastResponse,
 } from '../types/weather';
 
-const API_BASE = import.meta.env.PROD ? '' : '';
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
-export async function searchLocations(query: string): Promise<GeocodingResponse> {
+export async function searchLocations(query: string, signal?: AbortSignal): Promise<GeocodingResponse> {
   const response = await fetch(
-    `${API_BASE}/api/geocode?q=${encodeURIComponent(query)}`
+    `${API_BASE}/api/geocode?q=${encodeURIComponent(query)}`,
+    { signal }
   );
   if (!response.ok) {
     throw new Error(`Geocoding failed: ${response.statusText}`);

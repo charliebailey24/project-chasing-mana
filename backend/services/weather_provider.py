@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
@@ -95,11 +95,17 @@ class WeatherProvider:
         response.raise_for_status()
         data = response.json()
 
-        # Group 3-hour forecasts by date
+        # Get timezone offset from API (seconds from UTC)
+        tz_offset_seconds = data["city"].get("timezone", 0)
+        location_tz = timezone(timedelta(seconds=tz_offset_seconds))
+
+        # Group 3-hour forecasts by date in the location's timezone
         daily_items: dict[str, list[dict]] = defaultdict(list)
         for item in data["list"]:
-            dt = datetime.fromtimestamp(item["dt"])
-            date_key = dt.strftime("%Y-%m-%d")
+            # Convert UTC timestamp to location's local time for grouping
+            dt_utc = datetime.fromtimestamp(item["dt"], tz=timezone.utc)
+            dt_local = dt_utc.astimezone(location_tz)
+            date_key = dt_local.strftime("%Y-%m-%d")
             daily_items[date_key].append(item)
 
         # Convert to daily forecasts
@@ -108,7 +114,7 @@ class WeatherProvider:
 
         for date_key in sorted_dates:
             items = daily_items[date_key]
-            date = datetime.strptime(date_key, "%Y-%m-%d")
+            date = datetime.strptime(date_key, "%Y-%m-%d").replace(tzinfo=location_tz)
             daily_forecasts.append(DailyForecast.from_openweathermap_3h(items, date))
 
         return ForecastResponse(

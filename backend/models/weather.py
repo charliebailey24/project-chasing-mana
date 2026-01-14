@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel
 
 
@@ -44,7 +44,7 @@ class CurrentWeather(BaseModel):
             location_name=data.get("name", "Unknown"),
             lat=data["coord"]["lat"],
             lon=data["coord"]["lon"],
-            timestamp=datetime.fromtimestamp(data["dt"]),
+            timestamp=datetime.fromtimestamp(data["dt"], tz=timezone.utc),
             temp=main["temp"],
             feels_like=main["feels_like"],
             temp_min=main["temp_min"],
@@ -61,8 +61,8 @@ class CurrentWeather(BaseModel):
                 description=weather["description"],
                 icon=weather["icon"],
             ),
-            sunrise=datetime.fromtimestamp(sys["sunrise"]) if "sunrise" in sys else None,
-            sunset=datetime.fromtimestamp(sys["sunset"]) if "sunset" in sys else None,
+            sunrise=datetime.fromtimestamp(sys["sunrise"], tz=timezone.utc) if "sunrise" in sys else None,
+            sunset=datetime.fromtimestamp(sys["sunset"], tz=timezone.utc) if "sunset" in sys else None,
         )
 
 
@@ -83,34 +83,6 @@ class DailyForecast(BaseModel):
     rain: float | None = None
     snow: float | None = None
     condition: WeatherCondition
-
-    @classmethod
-    def from_openweathermap_daily(cls, data: dict) -> "DailyForecast":
-        """Create from OpenWeatherMap One Call API daily forecast."""
-        weather = data["weather"][0]
-        temp = data["temp"]
-
-        return cls(
-            date=datetime.fromtimestamp(data["dt"]),
-            temp_day=temp["day"],
-            temp_min=temp["min"],
-            temp_max=temp["max"],
-            temp_night=temp["night"],
-            feels_like_day=data["feels_like"]["day"],
-            humidity=data["humidity"],
-            wind_speed=data["wind_speed"],
-            wind_deg=data.get("wind_deg", 0),
-            clouds=data.get("clouds", 0),
-            pop=data.get("pop", 0),
-            rain=data.get("rain"),
-            snow=data.get("snow"),
-            condition=WeatherCondition(
-                id=weather["id"],
-                main=weather["main"],
-                description=weather["description"],
-                icon=weather["icon"],
-            ),
-        )
 
     @classmethod
     def from_openweathermap_3h(cls, items: list[dict], date: datetime) -> "DailyForecast":

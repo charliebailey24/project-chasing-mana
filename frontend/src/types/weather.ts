@@ -58,6 +58,6 @@ export interface DailyForecast {
 export interface ForecastResponse {
   lat: number;
   lon: number;
-  timezone: string | null;
+  timezone: number | null;
   daily: DailyForecast[];
 }
